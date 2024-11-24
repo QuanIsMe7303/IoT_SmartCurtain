@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "107710870923",
+    "firebase_url": "https://smartcurtain-f7dd8-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "smartcurtain-f7dd8",
+    "storage_bucket": "smartcurtain-f7dd8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107710870923:android:8945beeb1c556de21c6b8e",
+        "android_client_info": {
+          "package_name": "com.android.smartcurtainapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCq8GMP0QZWMCnD763TqTUuh8q1ilakFYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

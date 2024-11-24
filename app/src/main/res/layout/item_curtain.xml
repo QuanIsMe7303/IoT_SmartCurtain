@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingLeft="20sp"
+    android:background="#ffffff"
+    android:elevation="4dp"
+    android:layout_margin="8dp"
+    android:layout_marginBottom="12dp"
+    android:layout_gravity="center"
+    >
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="left|center"
+        android:layout_weight="1"
+        >
+        <TextView
+            android:id="@+id/curtainName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rèm 1"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#0073a5"
+            android:layout_gravity="top|left"
+            android:layout_marginBottom="8sp"/>
+
+        <TextView
+            android:id="@+id/curtainStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trạng thái: Đóng"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="right"
+        android:padding="10sp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thủ công"
+                />
+
+            <Switch
+                android:id="@+id/switchMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10sp"
+                android:layout_marginRight="10sp"
+                android:layout_gravity="center_horizontal"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tự động"
+
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="10sp"
+            >
+
+            <Button
+                android:id="@+id/button_closeCurtain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đóng"
+                android:layout_marginRight="10sp"
+                android:backgroundTint="#fe4c4c"
+                />
+
+            <Button
+                android:id="@+id/button_openCurtain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mở"
+                android:backgroundTint="#00a400"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+
+
+</LinearLayout>
