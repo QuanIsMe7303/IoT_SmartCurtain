@@ -86,6 +86,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "com.google.services.firebase.aqiPopupShown": "true",
+    "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/anhqu/AndroidStudioProjects/SmartCurtainApp/AndroidApp",
     "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"

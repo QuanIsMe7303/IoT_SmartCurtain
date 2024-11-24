@@ -10,11 +10,44 @@
         android:layout_height="wrap_content"
         android:text="Smart Curtain System"
         android:gravity="center"
-        android:textSize="28sp"
+        android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="#0073a5"
         android:padding="20dp"
         android:background="#ffffff" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#ffffff"
+        android:gravity="right"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Danh sách nhà"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:textSize="24dp"
+            android:textStyle="bold"
+            />
+
+        <Button
+            android:id="@+id/btn_add_house"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thêm Nhà"
+            android:drawableLeft="@drawable/baseline_add_24"
+            android:padding="8dp"
+            android:textColor="#ffffff"
+            android:backgroundTint="#0073a5"
+            android:layout_marginEnd="8dp"
+            />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_houseList"
