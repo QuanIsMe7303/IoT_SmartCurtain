@@ -5,11 +5,12 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="8dp"
-    android:background="#ffffff"
+    android:background="@drawable/rounded_corner"
     android:elevation="4dp"
     android:layout_margin="8dp"
     android:layout_marginBottom="12dp"
-    android:layout_gravity="center">
+    android:layout_gravity="center"
+    >
 
     <ImageView
         android:id="@+id/houseImageView"

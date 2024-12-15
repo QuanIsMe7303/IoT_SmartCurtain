@@ -5,6 +5,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -87,8 +91,17 @@ class HouseDetailActivity : AppCompatActivity() {
         })
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.house_detail_option_menu, menu)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_add_room -> {
+                showAddRoomDialog()
+                true
+            }
             android.R.id.home -> {
                 finish()
                 true
@@ -96,6 +109,47 @@ class HouseDetailActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    private fun showAddRoomDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_room, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Thêm phòng mới")
+            .create()
+
+        val etRoomName = dialogView.findViewById<EditText>(R.id.etRoomName)
+        val btnSaveRoom = dialogView.findViewById<Button>(R.id.btnSaveRoom)
+
+        btnSaveRoom.setOnClickListener {
+            val roomName = etRoomName.text.toString().trim()
+            if (roomName.isNotEmpty()) {
+                val houseId = intent.getStringExtra("house_id") ?: return@setOnClickListener
+                val roomId = FirebaseDatabase.getInstance().reference.child("rooms").push().key
+                val roomData = mapOf(
+                    "house_id" to houseId,
+                    "name" to roomName,
+                    "created_at" to System.currentTimeMillis().toString()
+                )
+
+                FirebaseDatabase.getInstance().reference.child("rooms").child(roomId!!)
+                    .setValue(roomData)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Thêm phòng thành công!", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Lỗi khi thêm phòng!", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                etRoomName.error = "Tên phòng không được để trống"
+            }
+        }
+
+        dialog.show()
+    }
+
+
+
 
 
 }

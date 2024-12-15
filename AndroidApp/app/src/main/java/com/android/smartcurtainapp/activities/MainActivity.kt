@@ -3,6 +3,10 @@ package com.android.smartcurtainapp.activities
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.ContextMenu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -23,6 +27,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var houseAdapter: HouseAdapter
     private lateinit var addHouseButton: Button
 
+    private var selectedHouse: House? = null
+
+
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,13 +45,22 @@ class MainActivity : AppCompatActivity() {
 
         // house adapter
         houseList = mutableListOf()
-        houseAdapter = HouseAdapter(houseList) { house ->
-            val intent = Intent(this, HouseDetailActivity::class.java)
-            intent.putExtra("house_id", house.house_id)
-            intent.putExtra("house_name", house.house_name)
+        houseAdapter = HouseAdapter(houseList,
+            onClick = { house ->
+                // Xử lý khi click vào item
+                val intent = Intent(this, HouseDetailActivity::class.java)
+                intent.putExtra("house_id", house.house_id)
+                intent.putExtra("house_name", house.house_name)
+                startActivity(intent)
+            },
+            onLongClick = { house, view ->
+                // Lưu thông tin nhà được chọn
+                selectedHouse = house
+                registerForContextMenu(view)
+                view.showContextMenu()
+            }
+        )
 
-            startActivity(intent)
-        }
         recyclerViewHouseList.adapter = houseAdapter
 
         // fetch data
@@ -82,11 +98,9 @@ class MainActivity : AppCompatActivity() {
             .setView(dialogView)
             .create()
 
-        // Lấy tham chiếu đến các thành phần giao diện trong dialog
         val etHouseName = dialogView.findViewById<EditText>(R.id.etAddHouseName)
         val btnSaveHouse = dialogView.findViewById<Button>(R.id.btnSaveHouse)
 
-        // Xử lý khi nhấn nút Lưu
         btnSaveHouse.setOnClickListener {
             val houseName = etHouseName.text.toString().trim()
 
@@ -114,5 +128,78 @@ class MainActivity : AppCompatActivity() {
         }
         dialog.show()
     }
+
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.house_context_menu, menu)
+    }
+
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.house_action_rename -> {
+                selectedHouse?.let { showRenameHouseDialog(it) }
+                true
+            }
+            R.id.house_action_delete -> {
+                selectedHouse?.let { confirmDeleteHouse(it) }
+                true
+            }
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+
+    private fun showRenameHouseDialog(house: House) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_rename_house, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val etNewName = dialogView.findViewById<EditText>(R.id.etNewHouseName)
+        val btnSave = dialogView.findViewById<Button>(R.id.btnSaveNewName)
+
+        etNewName.setText(house.house_name)
+
+        btnSave.setOnClickListener {
+            val newName = etNewName.text.toString().trim()
+            if (newName.isNotEmpty()) {
+                database.child("houses").child(house.house_id).child("name")
+                    .setValue(newName)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Đổi tên thành công!", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                etNewName.error = "Tên không được để trống"
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun confirmDeleteHouse(house: House) {
+        AlertDialog.Builder(this)
+            .setTitle("Xóa nhà")
+            .setMessage("Bạn có chắc chắn muốn xóa nhà \"${house.house_name}\" không?")
+            .setPositiveButton("Xóa") { _, _ ->
+                database.child("houses").child(house.house_id)
+                    .removeValue()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Xóa thành công!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+
 
 }
