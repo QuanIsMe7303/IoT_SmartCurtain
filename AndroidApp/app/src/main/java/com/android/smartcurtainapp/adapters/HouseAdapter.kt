@@ -10,7 +10,8 @@ import com.android.smartcurtainapp.models.House
 
 class HouseAdapter(
     private val houses: List<House>,
-    private val onClick: (House) -> Unit
+    private val onClick: (House) -> Unit,
+    private val onLongClick: (House, View) -> Unit
 ) : RecyclerView.Adapter<HouseAdapter.HouseViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HouseViewHolder {
@@ -30,8 +31,16 @@ class HouseAdapter(
 
         fun bind(house: House) {
             houseNameTextView.text = house.house_name
+
+            // Xử lý sự kiện click
             itemView.setOnClickListener {
                 onClick(house)
+            }
+
+            // Xử lý sự kiện nhấn giữ
+            itemView.setOnLongClickListener {
+                onLongClick(house, itemView)
+                true
             }
         }
     }
