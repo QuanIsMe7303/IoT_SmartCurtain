@@ -19,6 +19,7 @@ import com.android.smartcurtainapp.adapters.HouseAdapter
 import com.android.smartcurtainapp.models.House
 import com.google.firebase.Timestamp
 import com.google.firebase.database.*
+import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
 
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         // fetch data
         fetchHouses()
+        Log.d("Main", "fetchHouse")
 
         // button click event
         addHouseButton.setOnClickListener {showAddHouseDialog()}

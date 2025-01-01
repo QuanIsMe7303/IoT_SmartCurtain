@@ -19,6 +19,10 @@
 #define LIMIT_SWITCH_OPEN 32
 #define LIMIT_SWITCH_CLOSE 33
 
+// Định danh thiết bị
+String curtainID;
+String roomID;
+
 const int DHTTYPE = DHT11;
 DHT dht(DHT_PIN, DHTTYPE);
 
@@ -51,7 +55,8 @@ void setup()
     pinMode(LIGHT_SENSOR_PIN, INPUT);
     pinMode(MOTOR_IN1, OUTPUT);
     pinMode(MOTOR_IN2, OUTPUT);
-    ledcAttach(MOTOR_ENABLE, freq, resolution);
+    ledcAttachPin(MOTOR_ENABLE, 0);
+    ledcSetup(0, freq, resolution);
 
     // Công tắc hành trình
     pinMode(LIMIT_SWITCH_OPEN, INPUT_PULLUP);
@@ -87,6 +92,13 @@ void setup()
     config.token_status_callback = tokenStatusCallback;
     Firebase.begin(&config, &auth);
     Firebase.reconnectWiFi(true);
+
+
+    curtainID = generatePushID();
+    Serial.println("Generated Device ID: " + curtainID);
+    roomID = "";
+
+    registerDevice();
 }
 
 void loop()
@@ -94,7 +106,7 @@ void loop()
     if (Firebase.ready() && signupOK)
     {
         // Đọc chế độ điều khiển từ Firebase
-        if (Firebase.RTDB.getBool(&fbdo, "/control/auto_mode"))
+        if (Firebase.RTDB.getBool(&fbdo, String("/curtains/") + curtainID + "/control/auto_mode"))
         {
             isAutoMode = fbdo.boolData();
         }
@@ -127,7 +139,7 @@ void loop()
         else
         {
             // Chế độ thủ công: đọc trạng thái từ Firebase và điều khiển
-            if (Firebase.RTDB.getBool(&fbdo, "/control/manual_state"))
+            if (Firebase.RTDB.getBool(&fbdo, String("/curtains/") + curtainID + "/control/manual_state"))
             {
                 bool manualState = fbdo.boolData();
                 if (manualState != curtainState)
@@ -140,15 +152,27 @@ void loop()
     }
 }
 
+void registerDevice()
+{
+    Firebase.RTDB.setBool(&fbdo, String("/curtains/") + curtainID + "/status", false);
+    Firebase.RTDB.setString(&fbdo, String("/curtains/") + curtainID + "/name", "New Curtain");
+    Firebase.RTDB.setBool(&fbdo, String("/curtains/") + curtainID + "/auto_mode", true);
+    Firebase.RTDB.setString(&fbdo, String("/curtains/") + curtainID + "/room_id", roomID);
+
+    Firebase.RTDB.setInt(&fbdo, String("/sensors/") + roomID + "/sensor/light_value", ldrData);
+    Firebase.RTDB.setFloat(&fbdo, String("/sensors/") + roomID + "/sensor/temperature", temperature);
+    Firebase.RTDB.setFloat(&fbdo, String("/sensors/") + roomID + "/sensor/humidity", humidity);
+}
+
 void updateSensorData()
 {
     // Cập nhật giá trị cảm biến lên Firebase
-    Firebase.RTDB.setInt(&fbdo, "/sensor/light_value", ldrData);
-    Firebase.RTDB.setFloat(&fbdo, "/sensor/temperature", temperature);
-    Firebase.RTDB.setFloat(&fbdo, "/sensor/humidity", humidity);
+    Firebase.RTDB.setInt(&fbdo, String("/sensors/") + curtainID + "/sensor/light_value", ldrData);
+    Firebase.RTDB.setFloat(&fbdo, String("/sensors/") + curtainID + "/sensor/temperature", temperature);
+    Firebase.RTDB.setFloat(&fbdo, String("/sensors/") + curtainID + "/sensor/humidity", humidity);
 
     // In giá trị ra Serial Monitor
-    Serial.printf("Light: %d, Temp: %.1f°C, Humidity: %.1f%%\n", ldrData, temperature, humidity);
+    Serial.printf("Light: %d, Temp: %.1f\u00B0C, Humidity: %.1f%%\n", ldrData, temperature, humidity);
 }
 
 void controlCurtain(bool openCurtain)
@@ -156,14 +180,12 @@ void controlCurtain(bool openCurtain)
     if (openCurtain)
     {
         spinAnticlockwise(); // Mở rèm
-        Firebase.RTDB.setBool(&fbdo, "/curtain/status", true);
-        Firebase.RTDB.setBool(&fbdo, "/control/manual_state", true);
+        Firebase.RTDB.setBool(&fbdo, String("/curtains/") + curtainID + "/status", true);
     }
     else
     {
         spinClockwise(); // Đóng rèm
-        Firebase.RTDB.setBool(&fbdo, "/curtain/status", false);
-        Firebase.RTDB.setBool(&fbdo, "/control/manual_state", false);
+        Firebase.RTDB.setBool(&fbdo, String("/curtains/") + curtainID + "/status", false);
     }
 }
 
@@ -171,7 +193,7 @@ void spinClockwise()
 {
     digitalWrite(MOTOR_IN1, HIGH);
     digitalWrite(MOTOR_IN2, LOW);
-    ledcWrite(MOTOR_ENABLE, MOTOR_SPEED);
+    ledcWrite(0, MOTOR_SPEED);
     Serial.println("Curtain Closing");
 
     while (digitalRead(LIMIT_SWITCH_CLOSE) == HIGH)
@@ -192,7 +214,7 @@ void spinAnticlockwise()
 {
     digitalWrite(MOTOR_IN1, LOW);
     digitalWrite(MOTOR_IN2, HIGH);
-    ledcWrite(MOTOR_ENABLE, MOTOR_SPEED);
+    ledcWrite(0, MOTOR_SPEED);
     Serial.println("Curtain Opening");
 
     while (digitalRead(LIMIT_SWITCH_OPEN) == HIGH)
@@ -214,5 +236,18 @@ void stopCurtain()
 {
     digitalWrite(MOTOR_IN1, LOW);
     digitalWrite(MOTOR_IN2, LOW);
-    ledcWrite(MOTOR_ENABLE, 0);
+    ledcWrite(0, 0);
+}
+
+String generatePushID() {
+    const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    char pushID[21];
+    pushID[0] = '-';
+
+    for (int i = 1; i < 20; i++) {
+        pushID[i] = alphabet[random(0, sizeof(alphabet) - 1)];
+    }
+
+    pushID[20] = '\0'; // Kết thúc chuỗi
+    return String(pushID);
 }

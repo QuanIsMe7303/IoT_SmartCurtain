@@ -1,8 +1,12 @@
 package com.android.smartcurtainapp.activities
 
+import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
@@ -22,6 +26,7 @@ class RoomDetailActivity : AppCompatActivity() {
     private lateinit var adapter: CurtainAdapter
     private lateinit var textView_temperature: TextView
     private lateinit var textView_humidity: TextView
+    private var roomId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +38,7 @@ class RoomDetailActivity : AppCompatActivity() {
 
         val houseId = intent.getStringExtra("house_id") ?: ""
         val houseName = intent.getStringExtra("house_name") ?: ""
-        val roomId = intent.getStringExtra("room_id") ?: ""
+        roomId = intent.getStringExtra("room_id") ?: ""
         val roomName = intent.getStringExtra("room_name")
 
         recyclerViewCurtainList = findViewById(R.id.recyclerViewCurtains)
@@ -111,9 +116,18 @@ class RoomDetailActivity : AppCompatActivity() {
 
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.room_option_menu, menu)
+        return true
+    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_add_device -> {
+                showDeviceConnectionDialog()
+                true
+            }
+
             android.R.id.home -> {
                 finish()
                 true
@@ -207,6 +221,84 @@ class RoomDetailActivity : AppCompatActivity() {
            }
 
        })
+    }
+
+    private fun showDeviceConnectionDialog() {
+        val loadingDialog = ProgressDialog(this).apply {
+            setMessage("Đang chờ thiết bị kết nối...")
+            setCancelable(false)
+        }
+
+        loadingDialog.show()
+
+        val newDeviceListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val unassignedDevices = snapshot.children.firstOrNull { curtainSnapshot ->
+                    val roomId = curtainSnapshot.child("room_id").getValue(String::class.java)
+                    roomId == "defaultRoom"
+                }
+
+                if (unassignedDevices != null) {
+                    database.child("curtains").removeEventListener(this)
+                    val curtainId = unassignedDevices.key
+                    val curtainRef = database.child("curtains").child(curtainId!!)
+
+                    // Dữ liệu mới cho rèm
+                    val newCurtainData = mapOf(
+                        "room_id" to roomId,
+                        "created_at" to System.currentTimeMillis().toString()
+                    )
+
+                    // Cập nhật dữ liệu rèm
+                    curtainRef.updateChildren(newCurtainData)
+                        .addOnSuccessListener {
+                            Log.d("TEST", "new curtain id: $curtainId assigned to room: $roomId")
+                            loadingDialog.dismiss()
+
+                            Toast.makeText(
+                                this@RoomDetailActivity,
+                                "Thiết bị mới đã được tìm thấy và gán thành công!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .addOnFailureListener {
+                            loadingDialog.dismiss()
+                            Toast.makeText(
+                                this@RoomDetailActivity,
+                                "Lỗi khi gán thiết bị vào phòng.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                }
+            }
+
+
+            override fun onCancelled(error: DatabaseError) {
+                loadingDialog.dismiss()
+                Toast.makeText(
+                    this@RoomDetailActivity,
+                    "Lỗi kết nối: ${error.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        database.child("curtains")
+            .addValueEventListener(newDeviceListener)
+
+        // Timeout sau 2 phút nếu không tìm thấy thiết bị
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (loadingDialog.isShowing) {
+                loadingDialog.dismiss()
+                database.child("curtains").removeEventListener(newDeviceListener)
+
+                Toast.makeText(
+                    this,
+                    "Hết thời gian chờ. Không tìm thấy thiết bị mới.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }, 2 * 60 * 1000) // Timeout 2 phút
     }
 
 }
