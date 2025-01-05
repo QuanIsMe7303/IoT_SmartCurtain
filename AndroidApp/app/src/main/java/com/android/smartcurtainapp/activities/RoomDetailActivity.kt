@@ -1,5 +1,6 @@
 package com.android.smartcurtainapp.activities
 
+import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -50,8 +52,10 @@ class RoomDetailActivity : AppCompatActivity() {
                 "open" -> updateCurtainState(this, curtain.name, curtain.id!!, true)
                 "close" -> updateCurtainState(this, curtain.name, curtain.id!!, false)
                 "toggleMode" -> toggleCurtainMode(this, curtain.name, curtain.id!!)
+                "options" -> showCurtainOptionsDialog(curtain)
             }
         }
+
 
         recyclerViewCurtainList.adapter = adapter
 
@@ -300,5 +304,67 @@ class RoomDetailActivity : AppCompatActivity() {
             }
         }, 2 * 60 * 1000) // Timeout 2 phút
     }
+
+
+    private fun showCurtainOptionsDialog(curtain: Curtain) {
+        val options = arrayOf("Đổi tên", "Xóa rèm")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Tùy chọn cho rèm ${curtain.name}")
+        builder.setItems(options) { _, which ->
+            when (which) {
+                0 -> showRenameCurtainDialog(curtain)
+                1 -> deleteCurtain(curtain)
+            }
+        }
+        builder.show()
+    }
+
+    private fun showRenameCurtainDialog(curtain: Curtain) {
+        val input = EditText(this).apply {
+            hint = "Nhập tên mới"
+            setText(curtain.name)
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Đổi tên rèm")
+            .setView(input)
+            .setPositiveButton("Lưu") { _, _ ->
+                val newName = input.text.toString()
+                if (newName.isNotBlank()) {
+                    database.child("curtains").child(curtain.id!!).child("name")
+                        .setValue(newName)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Đổi tên thành công!", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(this, "Lỗi khi đổi tên!", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(this, "Tên không được để trống!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .create()
+        dialog.show()
+    }
+
+    private fun deleteCurtain(curtain: Curtain) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Xóa rèm")
+            .setMessage("Bạn có chắc chắn muốn xóa rèm ${curtain.name}?")
+            .setPositiveButton("Xóa") { _, _ ->
+                database.child("curtains").child(curtain.id!!)
+                    .removeValue()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Xóa rèm thành công!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Lỗi khi xóa rèm!", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .setNegativeButton("Hủy", null)
+            .create()
+        dialog.show()
+    }
+
 
 }

@@ -38,7 +38,14 @@ class CurtainAdapter(
         holder.buttonOpen.setOnClickListener { onCurtainAction(curtain, "open") }
         holder.buttonClose.setOnClickListener { onCurtainAction(curtain, "close") }
         holder.switchMode.setOnCheckedChangeListener { _, _ -> onCurtainAction(curtain, "toggleMode") }
+
+        // Lắng nghe sự kiện ấn giữ
+        holder.itemView.setOnLongClickListener {
+            onCurtainAction(curtain, "options")
+            true
+        }
     }
+
 
     override fun getItemCount(): Int = curtainList.size
 }
