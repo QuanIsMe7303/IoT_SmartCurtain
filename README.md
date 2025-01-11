@@ -55,7 +55,7 @@ The system consists of three main components:
 - Android Studio for running the Kotlin application.
 - Firebase account with a Realtime Database configured.
 
-## Hardware Setup:
+### Hardware Setup:
 1. **Hardware Connections**:  
    - Connect the ESP32 to the sensors (light, temperature, and humidity) and the motor as detailed in the hardware configuration section of the report.  
    - Ensure the limit switches and motor driver are properly wired to avoid malfunction during operation.
@@ -74,13 +74,13 @@ The system consists of three main components:
      #define DATABASE_URL "<Your Firebase Database URL>"
 4. **Power On**: Connect the ESP32 to a power source to initialize the device.
 
-### 2. **Cloud Setup**
+### Cloud Setup
 
 1. Create a Firebase project.
 2. Set up the Realtime Database and note the database URL.
 3. Enable Firebase Authentication for secure access.
 
-### 3. **Android Application Setup**
+### Android Application Setup
 
 1. Clone the repository and open the Android project in Android Studio.
 2. Update the `google-services.json` file with your Firebase configuration.
