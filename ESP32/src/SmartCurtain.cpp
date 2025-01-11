@@ -6,10 +6,10 @@
 #include "DHT.h"
 
 // WiFi và Firebase thông tin
-#define WIFI_SSID "oep uenb"
-#define WIFI_PASSWORD "77777777"
-#define API_KEY "AIzaSyDWNNERFATJJQHhGGiipuAHZS4qwdSjF60"
-#define DATABASE_URL "https://smartcurtain-f7dd8-default-rtdb.asia-southeast1.firebasedatabase.app/"
+#define WIFI_SSID "<Your Wi-Fi SSID>"
+#define WIFI_PASSWORD "<Your Wi-Fi Password>"
+#define API_KEY "<Your Firebase API Key>"
+#define DATABASE_URL "<Your Firebase Database URL>
 
 // Cấu hình chân cảm biến và động cơ
 #define LIGHT_SENSOR_PIN 34
