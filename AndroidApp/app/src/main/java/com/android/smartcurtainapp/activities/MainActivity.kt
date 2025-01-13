@@ -4,22 +4,25 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.ContextMenu
+import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.smartcurtainapp.R
 import com.android.smartcurtainapp.adapters.HouseAdapter
 import com.android.smartcurtainapp.models.House
-import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import kotlin.math.log
+import com.android.smartcurtainapp.R
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,9 +30,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var houseList: MutableList<House>
     private lateinit var houseAdapter: HouseAdapter
     private lateinit var addHouseButton: Button
+    private lateinit var auth: FirebaseAuth
+    private lateinit var logoutButton: ImageView
 
     private var selectedHouse: House? = null
-
 
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 
@@ -37,6 +41,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
+
+        auth = FirebaseAuth.getInstance()
+
+        if (auth.currentUser == null) {
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
+
+        logoutButton = findViewById(R.id.btn_logout)
+
+        // Sự kiện click cho nút đăng xuất
+        logoutButton.setOnClickListener {
+            showLogoutConfirmationDialog()
+        }
 
         addHouseButton = findViewById(R.id.btn_add_house)
 
@@ -48,14 +68,12 @@ class MainActivity : AppCompatActivity() {
         houseList = mutableListOf()
         houseAdapter = HouseAdapter(houseList,
             onClick = { house ->
-                // Xử lý khi click vào item
                 val intent = Intent(this, HouseDetailActivity::class.java)
                 intent.putExtra("house_id", house.house_id)
                 intent.putExtra("house_name", house.house_name)
                 startActivity(intent)
             },
             onLongClick = { house, view ->
-                // Lưu thông tin nhà được chọn
                 selectedHouse = house
                 registerForContextMenu(view)
                 view.showContextMenu()
@@ -64,12 +82,25 @@ class MainActivity : AppCompatActivity() {
 
         recyclerViewHouseList.adapter = houseAdapter
 
-        // fetch data
         fetchHouses()
         Log.d("Main", "fetchHouse")
 
-        // button click event
-        addHouseButton.setOnClickListener {showAddHouseDialog()}
+        addHouseButton.setOnClickListener { showAddHouseDialog() }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Bạn có chắc chắn muốn đăng xuất không?")
+            .setPositiveButton("Đồng ý") { dialog, which ->
+                auth.signOut()
+                Toast.makeText(this, "Đăng xuất thành công!", Toast.LENGTH_SHORT).show()
+
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
     }
 
     private fun fetchHouses() {
@@ -107,7 +138,6 @@ class MainActivity : AppCompatActivity() {
             val houseName = etHouseName.text.toString().trim()
 
             if (houseName.isNotEmpty()) {
-                // Lưu dữ liệu vào Firebase
                 val newHouseRef = database.child("houses").push()
                 val houseData = mapOf(
                     "name" to houseName,
@@ -116,12 +146,10 @@ class MainActivity : AppCompatActivity() {
 
                 newHouseRef.setValue(houseData)
                     .addOnSuccessListener {
-                        // Thành công
                         Toast.makeText(this, "Thêm mới $houseName thành công!", Toast.LENGTH_SHORT).show()
                         dialog.dismiss()
                     }
                     .addOnFailureListener { error ->
-                        // Lỗi
                         Toast.makeText(this, "Đã xảy ra lỗi!", Toast.LENGTH_SHORT).show()
                     }
             } else {
@@ -137,7 +165,6 @@ class MainActivity : AppCompatActivity() {
         inflater.inflate(R.menu.house_context_menu, menu)
     }
 
-
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.house_action_rename -> {
@@ -151,7 +178,6 @@ class MainActivity : AppCompatActivity() {
             else -> super.onContextItemSelected(item)
         }
     }
-
 
     private fun showRenameHouseDialog(house: House) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_rename_house, null)
@@ -201,7 +227,4 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Hủy", null)
             .show()
     }
-
-
-
 }

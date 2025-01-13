@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-</selector>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#ffffff" />  <!-- Màu nền trắng -->
+    <corners android:radius="8dp" />  <!-- Bán kính góc, tạo các góc bo tròn nhẹ -->
+    <stroke android:color="#c12924" android:width="2dp" />  <!-- Đặt viền cho nút, có màu xanh -->
+</shape>
